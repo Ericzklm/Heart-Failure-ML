@@ -9,6 +9,8 @@ import xgboost as xgb
 #from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 
+dataAnalysis = 0
+
 #find the path to our CSV file within google drive and pass it as an argument to the open call.
 #the path will begin with /content/drive/My Drive/ in most cases.
 CHFdata = pd.read_csv(filepath_or_buffer = "CHF Data.csv", header=1, dtype=str)
@@ -31,6 +33,56 @@ for j in intBoolList:
 CHFdata['Gender'] = CHFdata['Gender'].map({'M': False, 'F': True})
 CHFdata = CHFdata.astype(convert_dict) 
 CHFdata.dtypes
+
+if dataAnalysis == 1:
+    graphList = ['Age','BMI','Troponin (highest)','Echocardiogram LVEF (%)','BNP (Initial, B-type naturetic peptide)','Hemoglobin A1C','GFR','Creat (Chem 7 within 24 hours of admission)','Smoking (Pack Year History)']
+    graphs = plt.figure(figsize=(25,8))
+    #plt.title('Patient Data Distributions')
+    for k in range(1,len(graphList) + 1):
+        graphs.add_subplot(2,5,k)
+        sns.distplot(CHFdata[graphList[k-1]], hist=True, kde=True, bins=int(len(CHFdata)/8), color = 'tomato', kde_kws={'linewidth': 2})
+        #plt.ylabel('Frequency')
+        #plt.title(graphList[k-1] + ' distribution')
+
+    pie = plt.figure(figsize=(25,15))
+
+    pie.add_subplot(3,4,1)
+    sizes = [CHFdata.loc[CHFdata['Gender'] == False].shape[0], CHFdata.loc[CHFdata['Gender'] == True].shape[0]]
+    plt.pie(sizes, explode = (0,.05), labels=['Male', 'Female'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+    pie.add_subplot(3,4,2)
+    sizes = [CHFdata.loc[CHFdata['30 day readmission'] == 1].shape[0], CHFdata.loc[CHFdata['30 day readmission'] == 0].shape[0]]
+    plt.pie(sizes, explode = (0,.05), labels=['30 Day Readmission', 'No 30 Day Readmission'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+    pie.add_subplot(3,4,3)
+    sizes = [CHFdata.loc[CHFdata['Hypertension'] == 1].shape[0], CHFdata.loc[CHFdata['Hypertension'] == 0].shape[0]]
+    plt.pie(sizes, explode = (0,.13), labels=['Hypertension ', 'No Hypertension'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+    pie.add_subplot(3,4,4)
+    sizes = [CHFdata.loc[CHFdata['Coronary Artery Disease'] == 1].shape[0], CHFdata.loc[CHFdata['Coronary Artery Disease'] == 0].shape[0]]
+    plt.pie(sizes, explode = (0,.05), labels=['Coronary Artery Disease ', 'No Coronary Artery Disease'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+    pie.add_subplot(3,4,5)
+    sizes = [CHFdata.loc[CHFdata['Prior Stroke / TIA / Cerebral Vascular Ischemia'] == 1].shape[0], CHFdata.loc[CHFdata['Prior Stroke / TIA / Cerebral Vascular Ischemia'] == 0].shape[0]]
+    plt.pie(sizes, explode = (0,.15), labels=['Prior Stroke / TIA / Cerebral Vascular Ischemia', 'No Prior Stroke / TIA / Cerebral Vascular Ischemia'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+    pie.add_subplot(3,4,6)
+    sizes = [CHFdata.loc[CHFdata['Atrial Fibrillation'] == 1].shape[0], CHFdata.loc[CHFdata['Atrial Fibrillation'] == 0].shape[0]]
+    plt.pie(sizes, explode = (0,.05), labels=['Atrial Fibrillation ', 'No Atrial Fibrillation'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+    pie.add_subplot(3,4,7)
+    sizes = [CHFdata.loc[CHFdata['Peripheral vascular disease'] == 1].shape[0], CHFdata.loc[CHFdata['Peripheral vascular disease'] == 0].shape[0]]
+    plt.pie(sizes, explode = (0,.12), labels=['Peripheral vascular disease ', 'No Peripheral vascular disease'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+    pie.add_subplot(3,4,8)
+    sizes = [CHFdata.loc[CHFdata['Obstructive Sleep Apnea'] == 1].shape[0], CHFdata.loc[CHFdata['Obstructive Sleep Apnea'] == 0].shape[0]]
+    plt.pie(sizes, explode = (0,.08), labels=['Obstructive Sleep Apnea ', 'No Obstructive Sleep Apnea'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+    pie.add_subplot(3,4,9)
+    sizes = [CHFdata.loc[CHFdata['DM'] == 1].shape[0], CHFdata.loc[CHFdata['DM'] == 0].shape[0]]
+    plt.pie(sizes, explode = (0,.05), labels=['DM ', 'No DM'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+    plt.show()
 
 inputColumns = ["Age", "Gender", "BMI", "Echocardiogram LVEF (%)", "Troponin (highest)", "Hemoglobin A1C" ,"Creat (Chem 7 within 24 hours of admission)", "GFR", "BNP (Initial, B-type naturetic peptide)", "DM",  "Coronary Artery Disease", "Prior Stroke / TIA / Cerebral Vascular Ischemia", "Atrial Fibrillation", "Peripheral vascular disease", "Obstructive Sleep Apnea"]
 outputColumn = '30 day readmission'
@@ -64,7 +116,7 @@ params = {'max_depth':5, 'eta':0.004, 'subsample':1.0, 'min_child_weight':1.0, '
 model = xgb.train(params, trainMatrix, 1000, evals=[(testMatrix, "Test")], early_stopping_rounds=200)
 
 #2D array of parameters we will test by
-param_grid = {'eta':[0.1,0.05,0.01,0.005,0.001,0.0005,0.0001], 'max_depth':np.arange(1,10,1).tolist(), 'subsample':np.arange(1,0.1,-0.05).tolist(), 'colsample_bytree':np.arange(1,0.1,-0.05).tolist(), 'min_child_weight':np.arange(1,100,7).tolist()}
+param_grid = {'eta':[0.1,0.05,0.01,0.005,0.001,0.0005,0.0001], 'max_depth':np.arange(1,10,4).tolist(), 'subsample':np.arange(1,0.1,-0.5).tolist(), 'colsample_bytree':np.arange(1,0.1,-0.5).tolist(), 'min_child_weight':np.arange(1,100,100).tolist()}
 
 #Save the best results
 bestParams = {}
@@ -94,5 +146,34 @@ print("Testing Accuracy: " + str(accuracy_score(outputTest, outputTestPredict.ro
 print(classification_report(outputTest, outputTestPredict.round()))
 print("\nConfusion Matrix: ")
 print(pd.crosstab(outputTest, outputTestPredict.round()))
-print(xgb.plot_importance(model))
-model.save_model('7-17-20.model')
+xgb.plot_importance(model)
+plt.show()
+#xgb.to_graphviz(model)
+#plt.show()
+
+#model.save_model('7-17-20.model')
+
+bst = xgb.Booster()  # init model
+bst.load_model('7-16-20Overnight.model')  # load data
+
+Y_xgb_predict_train = bst.predict(trainMatrix)
+Y_xgb_predict = bst.predict(testMatrix)
+
+from sklearn.metrics import accuracy_score, classification_report
+
+print("Training Accuracy: " + str(accuracy_score(outputTrain, Y_xgb_predict_train.round())))
+print("Testing Accuracy: " + str(accuracy_score(outputTest, Y_xgb_predict.round())) + "\n")
+
+print(classification_report(outputTest, Y_xgb_predict.round()))
+# https://muthu.co/understanding-the-classification-report-in-sklearn/
+# Precision = TP/(TP + FP)
+# Recall = TP/(TP+FN)
+# F1 Score = 2*(Recall * Precision) / (Recall + Precision)
+
+print("\nConfusion Matrix: ")
+print(pd.crosstab(outputTest, Y_xgb_predict.round()))
+xgb.plot_importance(model)
+plt.show()
+# row is label, column is prediction
+
+
