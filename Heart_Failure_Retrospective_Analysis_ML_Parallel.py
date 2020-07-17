@@ -31,6 +31,7 @@ def getParams(inputData, outputData, inputColumns, maxDepth):
 
 if __name__ == '__main__':
     #read in the data from file
+    print(multiprocessing.cpu_count())
     CHFdata = pd.read_csv(filepath_or_buffer = "CHF Data.csv", header=1, dtype=str)
     CHFdata.dtypes
 
@@ -79,12 +80,16 @@ if __name__ == '__main__':
     params = {'max_depth':5, 'eta':0.004, 'subsample':1.0, 'min_child_weight':1.0, 'reg_lambda':0.0, 'reg_alpha':0.0, 'objective':'binary:logistic', 'eval_metric': 'error'}
     model = xgb.train(params, trainMatrix, 1000, evals=[(testMatrix, "Test")], early_stopping_rounds=200)
 
-    #to get the best results, hyper parameter selection is employed which will run a session for each combination of parameter values by calling the getParams function. This section takes a significant amount of time to run so parallelism is used.
-    pool = multiprocessing.Pool() 
-    inputs = np.arange(1,10,2).tolist()
+    to get the best results, hyper parameter selection is employed which will run a session for each combination of parameter values by calling the getParams function. This section takes a significant amount of time to run so parallelism is used.
+    pool = multiprocessing.Pool(processes = 4) 
+    inputs = np.arange(1,10,1).tolist()
     func = partial(getParams, inputData, outputData, inputColumns)
     outputs_async = pool.map_async(func, inputs) 
-    resultArr = outputs_async.get() 
+    resultArr = outputs_async.get()
+
+    #resultArr =[]
+    #for z in inputs:
+        #resultArr.append(getParams(inputData, outputData, inputColumns, z))
 
     lowestError = resultArr[0][0]
     bestParams = resultArr[0][1]
@@ -112,4 +117,4 @@ if __name__ == '__main__':
     print(xgb.plot_importance(model))
 
     #save the model for later use
-    model.save_model('7-16-20.model')
+    model.save_model('7-17-20.model')
