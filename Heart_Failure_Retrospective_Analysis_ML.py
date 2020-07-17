@@ -79,6 +79,7 @@ for max_depth in param_grid['max_depth']:
                     if cvResults['test-{}-mean'.format('error')].min() < lowestError:
                         lowestError = cvResults['test-{}-mean'.format('error')].min()
                         bestParams = {'max_depth':max_depth, 'eta':eta, 'subsample':subsample, 'colsample_bytree':colsample_bytree, 'min_child_weight':min_child_weight, 'objective':'binary:logistic', 'eval_metric': 'error'}
+                    print(lowestError)
 print(bestParams)
 print(lowestError)
 model = xgb.train(bestParams, trainMatrix, 1000, evals=[(testMatrix, "Test")], early_stopping_rounds=200)
