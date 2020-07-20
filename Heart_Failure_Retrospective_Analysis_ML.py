@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import xgboost as xgb
 
-#from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
 
 dataAnalysis = 0
+loadData = 0
 
 #find the path to our CSV file within google drive and pass it as an argument to the open call.
 #the path will begin with /content/drive/My Drive/ in most cases.
@@ -103,7 +104,6 @@ print(outputTest.shape)
 model = xgb.XGBClassifier()
 model.fit(inputTrain, outputTrain)
 
-from sklearn.metrics import accuracy_score
 outputPred = model.predict(inputTest)
 predictions = [round(value) for value in outputPred]
 # evaluate predictions
@@ -116,7 +116,7 @@ params = {'max_depth':5, 'eta':0.004, 'subsample':1.0, 'min_child_weight':1.0, '
 model = xgb.train(params, trainMatrix, 1000, evals=[(testMatrix, "Test")], early_stopping_rounds=200)
 
 #2D array of parameters we will test by
-param_grid = {'eta':[0.1,0.05,0.01,0.005,0.001,0.0005,0.0001], 'max_depth':np.arange(1,10,4).tolist(), 'subsample':np.arange(1,0.1,-0.5).tolist(), 'colsample_bytree':np.arange(1,0.1,-0.5).tolist(), 'min_child_weight':np.arange(1,100,100).tolist()}
+param_grid = {'eta':[0.1,0.05,0.01,0.005,0.001,0.0005,0.0001], 'max_depth':np.arange(1,10,1).tolist(), 'subsample':np.arange(1,0.1,-0.1).tolist(), 'colsample_bytree':np.arange(1,0.1,-0.1).tolist(), 'min_child_weight':np.arange(1,100,5).tolist()}
 
 #Save the best results
 bestParams = {}
@@ -134,11 +134,9 @@ for max_depth in param_grid['max_depth']:
                     #print(lowestError)
 print(bestParams)
 print(lowestError)
-model = xgb.train(bestParams, trainMatrix, 1000, evals=[(testMatrix, "Test")], early_stopping_rounds=200)
+model = xgb.train(bestParams, trainMatrix, 50000, evals=[(testMatrix, "Test")], early_stopping_rounds=10000)
 outputTrainPredict = model.predict(trainMatrix)
 outputTestPredict = model.predict(testMatrix)
-
-from sklearn.metrics import accuracy_score, classification_report
 
 print("Training Accuracy: " + str(accuracy_score(outputTrain, outputTrainPredict.round())))
 print("Testing Accuracy: " + str(accuracy_score(outputTest, outputTestPredict.round())) + "\n")
@@ -153,27 +151,21 @@ plt.show()
 
 #model.save_model('7-17-20.model')
 
-bst = xgb.Booster()  # init model
-bst.load_model('7-16-20Overnight.model')  # load data
+if loadData == 1:
 
-Y_xgb_predict_train = bst.predict(trainMatrix)
-Y_xgb_predict = bst.predict(testMatrix)
+    bst = xgb.Booster()
+    bst.load_model('7-16-20Overnight.model')
 
-from sklearn.metrics import accuracy_score, classification_report
+    outputTrainPredict = bst.predict(trainMatrix)
+    outputTestPredict = bst.predict(testMatrix)
 
-print("Training Accuracy: " + str(accuracy_score(outputTrain, Y_xgb_predict_train.round())))
-print("Testing Accuracy: " + str(accuracy_score(outputTest, Y_xgb_predict.round())) + "\n")
+    print("Training Accuracy: " + str(accuracy_score(outputTrain, outputTrainPredict.round())))
+    print("Testing Accuracy: " + str(accuracy_score(outputTest, outputTestPredict.round())) + "\n")
 
-print(classification_report(outputTest, Y_xgb_predict.round()))
-# https://muthu.co/understanding-the-classification-report-in-sklearn/
-# Precision = TP/(TP + FP)
-# Recall = TP/(TP+FN)
-# F1 Score = 2*(Recall * Precision) / (Recall + Precision)
-
-print("\nConfusion Matrix: ")
-print(pd.crosstab(outputTest, Y_xgb_predict.round()))
-xgb.plot_importance(model)
-plt.show()
-# row is label, column is prediction
+    print(classification_report(outputTest, outputTestPredict.round()))
+    print("\nConfusion Matrix: ")
+    print(pd.crosstab(outputTest, outputTestPredict.round()))
+    xgb.plot_importance(model)
+    plt.show()
 
 
