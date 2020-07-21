@@ -116,7 +116,7 @@ params = {'max_depth':5, 'eta':0.004, 'subsample':1.0, 'min_child_weight':1.0, '
 model = xgb.train(params, trainMatrix, 1000, evals=[(testMatrix, "Test")], early_stopping_rounds=200)
 
 #2D array of parameters we will test by
-param_grid = {'eta':[0.1,0.05,0.01,0.005,0.001,0.0005,0.0001], 'max_depth':np.arange(1,10,1).tolist(), 'subsample':np.arange(1,0.1,-0.1).tolist(), 'colsample_bytree':np.arange(1,0.1,-0.1).tolist(), 'min_child_weight':np.arange(1,100,5).tolist()}
+param_grid = {'eta':[.2,.15,0.1,.075,0.05,0.01,0.005,0.001,0.0005,0.0001], 'max_depth':np.arange(1,10,1).tolist(), 'subsample':np.arange(1,0.1,-0.1).tolist(), 'colsample_bytree':np.arange(1,0.1,-0.1).tolist(), 'min_child_weight':np.arange(1,100,5).tolist()}
 
 #Save the best results
 bestParams = {}
@@ -134,7 +134,7 @@ for max_depth in param_grid['max_depth']:
                     #print(lowestError)
 print(bestParams)
 print(lowestError)
-model = xgb.train(bestParams, trainMatrix, 50000, evals=[(testMatrix, "Test")], early_stopping_rounds=10000)
+model = xgb.train(bestParams, trainMatrix, 5000, evals=[(testMatrix, "Test")], early_stopping_rounds=1000)
 outputTrainPredict = model.predict(trainMatrix)
 outputTestPredict = model.predict(testMatrix)
 
@@ -149,7 +149,7 @@ plt.show()
 #xgb.to_graphviz(model)
 #plt.show()
 
-#model.save_model('7-17-20.model')
+#model.save_model('7-20-20Overnight.model')
 
 if loadData == 1:
 

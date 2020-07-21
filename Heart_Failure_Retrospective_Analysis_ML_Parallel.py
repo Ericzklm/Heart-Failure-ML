@@ -30,8 +30,10 @@ def getParams(inputData, outputData, inputColumns, maxDepth):
     return [lowestError, bestParams]
 
 if __name__ == '__main__':
+    dataAnalysis = 0
+    loadData = 0
+
     #read in the data from file
-    print(multiprocessing.cpu_count())
     CHFdata = pd.read_csv(filepath_or_buffer = "CHF Data.csv", header=1, dtype=str)
     CHFdata.dtypes
 
@@ -54,6 +56,56 @@ if __name__ == '__main__':
     CHFdata['Gender'] = CHFdata['Gender'].map({'M': False, 'F': True})
     CHFdata = CHFdata.astype(convert_dict) 
     #CHFdata.dtypes
+
+    if dataAnalysis == 1:
+        graphList = ['Age','BMI','Troponin (highest)','Echocardiogram LVEF (%)','BNP (Initial, B-type naturetic peptide)','Hemoglobin A1C','GFR','Creat (Chem 7 within 24 hours of admission)','Smoking (Pack Year History)']
+        graphs = plt.figure(figsize=(25,8))
+        #plt.title('Patient Data Distributions')
+        for k in range(1,len(graphList) + 1):
+            graphs.add_subplot(2,5,k)
+            sns.distplot(CHFdata[graphList[k-1]], hist=True, kde=True, bins=int(len(CHFdata)/8), color = 'tomato', kde_kws={'linewidth': 2})
+            #plt.ylabel('Frequency')
+            #plt.title(graphList[k-1] + ' distribution')
+
+        pie = plt.figure(figsize=(25,15))
+
+        pie.add_subplot(3,4,1)
+        sizes = [CHFdata.loc[CHFdata['Gender'] == False].shape[0], CHFdata.loc[CHFdata['Gender'] == True].shape[0]]
+        plt.pie(sizes, explode = (0,.05), labels=['Male', 'Female'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+        pie.add_subplot(3,4,2)
+        sizes = [CHFdata.loc[CHFdata['30 day readmission'] == 1].shape[0], CHFdata.loc[CHFdata['30 day readmission'] == 0].shape[0]]
+        plt.pie(sizes, explode = (0,.05), labels=['30 Day Readmission', 'No 30 Day Readmission'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+        pie.add_subplot(3,4,3)
+        sizes = [CHFdata.loc[CHFdata['Hypertension'] == 1].shape[0], CHFdata.loc[CHFdata['Hypertension'] == 0].shape[0]]
+        plt.pie(sizes, explode = (0,.13), labels=['Hypertension ', 'No Hypertension'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+        pie.add_subplot(3,4,4)
+        sizes = [CHFdata.loc[CHFdata['Coronary Artery Disease'] == 1].shape[0], CHFdata.loc[CHFdata['Coronary Artery Disease'] == 0].shape[0]]
+        plt.pie(sizes, explode = (0,.05), labels=['Coronary Artery Disease ', 'No Coronary Artery Disease'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+        pie.add_subplot(3,4,5)
+        sizes = [CHFdata.loc[CHFdata['Prior Stroke / TIA / Cerebral Vascular Ischemia'] == 1].shape[0], CHFdata.loc[CHFdata['Prior Stroke / TIA / Cerebral Vascular Ischemia'] == 0].shape[0]]
+        plt.pie(sizes, explode = (0,.15), labels=['Prior Stroke / TIA / Cerebral Vascular Ischemia', 'No Prior Stroke / TIA / Cerebral Vascular Ischemia'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+        pie.add_subplot(3,4,6)
+        sizes = [CHFdata.loc[CHFdata['Atrial Fibrillation'] == 1].shape[0], CHFdata.loc[CHFdata['Atrial Fibrillation'] == 0].shape[0]]
+        plt.pie(sizes, explode = (0,.05), labels=['Atrial Fibrillation ', 'No Atrial Fibrillation'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+        pie.add_subplot(3,4,7)
+        sizes = [CHFdata.loc[CHFdata['Peripheral vascular disease'] == 1].shape[0], CHFdata.loc[CHFdata['Peripheral vascular disease'] == 0].shape[0]]
+        plt.pie(sizes, explode = (0,.12), labels=['Peripheral vascular disease ', 'No Peripheral vascular disease'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+        pie.add_subplot(3,4,8)
+        sizes = [CHFdata.loc[CHFdata['Obstructive Sleep Apnea'] == 1].shape[0], CHFdata.loc[CHFdata['Obstructive Sleep Apnea'] == 0].shape[0]]
+        plt.pie(sizes, explode = (0,.08), labels=['Obstructive Sleep Apnea ', 'No Obstructive Sleep Apnea'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+        pie.add_subplot(3,4,9)
+        sizes = [CHFdata.loc[CHFdata['DM'] == 1].shape[0], CHFdata.loc[CHFdata['DM'] == 0].shape[0]]
+        plt.pie(sizes, explode = (0,.05), labels=['DM ', 'No DM'], colors=['lightsalmon', 'tomato'], autopct='%1.1f%%', shadow=True, startangle=90)
+
+        plt.show()
 
     #specify which factors/columns we want to consider in training and what column represents the outcome
     inputColumns = ["Age", "Gender", "BMI", "Echocardiogram LVEF (%)", "Troponin (highest)", "Hemoglobin A1C" ,"Creat (Chem 7 within 24 hours of admission)", "GFR", "BNP (Initial, B-type naturetic peptide)", "DM",  "Coronary Artery Disease", "Prior Stroke / TIA / Cerebral Vascular Ischemia", "Atrial Fibrillation", "Peripheral vascular disease", "Obstructive Sleep Apnea"]
@@ -80,8 +132,8 @@ if __name__ == '__main__':
     params = {'max_depth':5, 'eta':0.004, 'subsample':1.0, 'min_child_weight':1.0, 'reg_lambda':0.0, 'reg_alpha':0.0, 'objective':'binary:logistic', 'eval_metric': 'error'}
     model = xgb.train(params, trainMatrix, 1000, evals=[(testMatrix, "Test")], early_stopping_rounds=200)
 
-    to get the best results, hyper parameter selection is employed which will run a session for each combination of parameter values by calling the getParams function. This section takes a significant amount of time to run so parallelism is used.
-    pool = multiprocessing.Pool(processes = 4) 
+    #to get the best results, hyper parameter selection is employed which will run a session for each combination of parameter values by calling the getParams function. This section takes a significant amount of time to run so parallelism is used.
+    pool = multiprocessing.Pool(processes = 1) 
     inputs = np.arange(1,10,1).tolist()
     func = partial(getParams, inputData, outputData, inputColumns)
     outputs_async = pool.map_async(func, inputs) 
@@ -117,4 +169,20 @@ if __name__ == '__main__':
     print(xgb.plot_importance(model))
 
     #save the model for later use
-    model.save_model('7-17-20.model')
+    model.save_model('7-12-20.model')
+
+    if loadData == 1:
+        bst = xgb.Booster()
+        bst.load_model('7-16-20Overnight.model')
+
+        outputTrainPredict = bst.predict(trainMatrix)
+        outputTestPredict = bst.predict(testMatrix)
+
+        print("Training Accuracy: " + str(accuracy_score(outputTrain, outputTrainPredict.round())))
+        print("Testing Accuracy: " + str(accuracy_score(outputTest, outputTestPredict.round())) + "\n")
+
+        print(classification_report(outputTest, outputTestPredict.round()))
+        print("\nConfusion Matrix: ")
+        print(pd.crosstab(outputTest, outputTestPredict.round()))
+        xgb.plot_importance(model)
+        plt.show()
