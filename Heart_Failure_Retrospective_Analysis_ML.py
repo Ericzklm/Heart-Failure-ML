@@ -26,14 +26,14 @@ intBoolList = ['Urine Tox negative (0) or per history', 'Urine Tox Pos Stimulant
                'Urine Tox Positive Opiate (3)', 'Urine Tox Positive THC (4)', 'Smoking Currently (Yes/ No)', 'Former Smoker',
                'Marijuana (THC)', 'Alcohol (low/high)']
 #convert strings to appropirate types
-convert_dict = {'Age': float, 'BMI': float, 'Echocardiogram LVEF (%)': float, 'Troponin (highest)': float, 'Hemoglobin A1C': float, 'Creat (Chem 7 within 24 hours of admission)': float, 'BNP (Initial, B-type naturetic peptide)': float, 'GFR': float, 'DM': bool, 'Prior Stroke / TIA / Cerebral Vascular Ischemia': bool, 'Atrial Fibrillation': bool, 'Peripheral vascular disease': bool, 'Obstructive Sleep Apnea': bool, 'Gender': bool} 
+convert_dict = {'Age': float, 'BMI': float, 'Echocardiogram LVEF (%)': float, 'Troponin (highest)': float, 'Hemoglobin A1C': float, 'Creat (Chem 7 within 24 hours of admission)': float, 'BNP (Initial, B-type naturetic peptide)': float, 'GFR': float, 'DM': bool, 'Prior Stroke / TIA / Cerebral Vascular Ischemia': bool, 'Atrial Fibrillation': bool, 'Peripheral vascular disease': bool, 'Obstructive Sleep Apnea': bool, 'Gender': bool, 'Smoking (Pack Year History)': float, 'Marijuana (THC)': float, 'Alcohol (low/high)': float, 'Aortic Stenosis 0 = No, 1= yes / mild, 2=moderate, 3=severe': float} 
 for i in yesNoList:
-    CHFdata[i] = CHFdata[i].map({'Yes':True, 'No':False})
+    CHFdata[i] = CHFdata[i].map({'Yes':True, 'No':False, ' Yes':True, ' No':False})
 for j in intBoolList:
     CHFdata[j] = CHFdata[j].map({'1':True, '0':False})
 CHFdata['Gender'] = CHFdata['Gender'].map({'M': False, 'F': True})
 CHFdata = CHFdata.astype(convert_dict) 
-CHFdata.dtypes
+print(CHFdata.dtypes)
 
 if dataAnalysis == 1:
     graphList = ['Age','BMI','Troponin (highest)','Echocardiogram LVEF (%)','BNP (Initial, B-type naturetic peptide)','Hemoglobin A1C','GFR','Creat (Chem 7 within 24 hours of admission)','Smoking (Pack Year History)']
@@ -85,7 +85,12 @@ if dataAnalysis == 1:
 
     plt.show()
 
-inputColumns = ["Age", "Gender", "BMI", "Echocardiogram LVEF (%)", "Troponin (highest)", "Hemoglobin A1C" ,"Creat (Chem 7 within 24 hours of admission)", "GFR", "BNP (Initial, B-type naturetic peptide)", "DM",  "Coronary Artery Disease", "Prior Stroke / TIA / Cerebral Vascular Ischemia", "Atrial Fibrillation", "Peripheral vascular disease", "Obstructive Sleep Apnea"]
+inputColumns = ["Age", "Gender", "BMI", "Echocardiogram LVEF (%)", "Troponin (highest)",
+                "Hemoglobin A1C" ,"Creat (Chem 7 within 24 hours of admission)", "GFR",
+                "BNP (Initial, B-type naturetic peptide)", "DM",  "Coronary Artery Disease",
+                "Prior Stroke / TIA / Cerebral Vascular Ischemia", "Atrial Fibrillation",
+                "Peripheral vascular disease", "Obstructive Sleep Apnea", "Hypertension",
+                "Smoking (Pack Year History)", "Former Smoker"]
 outputColumn = '30 day readmission'
 
 inputData = CHFdata[inputColumns]
@@ -110,13 +115,13 @@ predictions = [round(value) for value in outputPred]
 accuracy = accuracy_score(outputTest, predictions)
 print("Accuracy: %.2f%%" % (accuracy * 100.0))
 
-trainMatrix = xgb.DMatrix(inputTrain, label=outputTrain, feature_names=inputColumns[:15])
-testMatrix = xgb.DMatrix(inputTest, label=outputTest, feature_names=inputColumns[:15])
+trainMatrix = xgb.DMatrix(inputTrain, label=outputTrain, feature_names=inputColumns[:18])
+testMatrix = xgb.DMatrix(inputTest, label=outputTest, feature_names=inputColumns[:18])
 params = {'max_depth':5, 'eta':0.004, 'subsample':1.0, 'min_child_weight':1.0, 'reg_lambda':0.0, 'reg_alpha':0.0, 'objective':'binary:logistic', 'eval_metric': 'error'}
 model = xgb.train(params, trainMatrix, 1000, evals=[(testMatrix, "Test")], early_stopping_rounds=200)
 
 #2D array of parameters we will test by
-param_grid = {'eta':[.2,.15,0.1,.075,0.05,0.01,0.005,0.001,0.0005,0.0001], 'max_depth':np.arange(1,10,1).tolist(), 'subsample':np.arange(1,0.1,-0.1).tolist(), 'colsample_bytree':np.arange(1,0.1,-0.1).tolist(), 'min_child_weight':np.arange(1,100,5).tolist()}
+param_grid = {'eta':[.3,.25,.2,.15,0.1,.075,0.05,0.01,0.005,0.001], 'max_depth':np.arange(1,10,1).tolist(), 'subsample':np.arange(1,0.1,-0.1).tolist(), 'colsample_bytree':np.arange(1,0.1,-0.1).tolist(), 'min_child_weight':np.arange(1,100,5).tolist()}
 
 #Save the best results
 bestParams = {}
