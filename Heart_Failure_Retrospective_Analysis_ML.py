@@ -154,7 +154,7 @@ plt.show()
 #xgb.to_graphviz(model)
 #plt.show()
 
-#model.save_model('7-20-20Overnight.model')
+model.save_model('7-23-20Overnight.model')
 
 if loadData == 1:
 
